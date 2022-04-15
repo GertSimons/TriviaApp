@@ -1,19 +1,83 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <Header :numberCorrect="numberCorrect" :numberTotal="numberTotal" />
+
+    <b-container class="bv-example-row">
+      <b-row>
+        <b-col sm="6" offset="3">
+          <QuestionBox
+            v-if="questions.length"
+            :currentQuestion="questions[index]"
+            :next="next"
+            :reset="reset"
+            :increment="increment"
+            :questionNumber="this.index"
+          />
+        </b-col>
+      </b-row>
+    </b-container>
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import Header from "./components/Header.vue";
+import QuestionBox from "./components/QuestionBox.vue";
 
 export default {
-  name: 'App',
+  name: "App",
   components: {
-    HelloWorld
-  }
-}
+    Header,
+    QuestionBox,
+  },
+  data() {
+    return {
+      questions: [],
+      index: 0,
+      numberCorrect: 0,
+      numberTotal: 0,
+      token: ''
+    };
+  },
+  methods: {
+    next() {
+      this.index++;
+    },
+    increment(isCorrect) {
+      if (isCorrect) {
+        this.numberCorrect++;
+      }
+      this.numberTotal++;
+    },
+    reset() {
+      this.questions = [];
+      this.index = 0;
+      this.numberCorrect = 0;
+      this.numberTotal = 0;
+
+      fetch("http://localhost:8080/questions?quantity=5&token=" + this.token, {
+        method: "get",
+      })
+        .then((response) => {
+          return response.json();
+        })
+        .then((jsonData) => {
+          this.questions = jsonData.results;
+        });
+    },
+  },
+  mounted: function () {
+    fetch("http://localhost:8080/questions?quantity=5&token=", {
+      method: "get",
+    })
+      .then((response) => {
+        return response.json();
+      })
+      .then((jsonData) => {
+        this.questions = jsonData.results;
+        this.token = jsonData.token
+      });
+  },
+};
 </script>
 
 <style>
